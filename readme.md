@@ -13,10 +13,11 @@ I don't quite understand how .NET libraries work, so if you want to use this par
 ## Usage
 
 ```csharp
+var env = new MathEnv();
 decimal result;
 
 try {
-    result = MathEvaluator.EvalMathString("  1+ 1"); // spaces are ignored
+    result = env.EvalMathString("  1+ 1"); // spaces are ignored
 } catch (MathException m) {
     Console.WriteLine($"Couldn't parse the expression: {m.Message}");
     return;
