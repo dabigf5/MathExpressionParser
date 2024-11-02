@@ -1,0 +1,17 @@
+MathExpressionParser.sln.DotSettings.user
+
+/obj/
+/bin/
+/.idea/
+/shelf/
+/workspace.xml
+
+/modules.xml
+/.idea.MathSharp.iml
+/contentModel.xml
+/projectSettingsUpdater.xml
+
+/httpRequests/
+
+/dataSources/
+/dataSources.local.xml
