@@ -85,4 +85,15 @@ internal class MathLexer(string text) {
         tokens.Add(new Token(TokenType.Eof));
         return tokens;
     }
+    
+    public static void PrintTokens(List<Token> tokens) {
+        foreach (var token in tokens) {
+            Console.Write(token.Type);
+            if (token.Value != null) {
+                Console.Write($": {token.Value}");
+            }
+
+            Console.WriteLine();
+        }
+    }
 }

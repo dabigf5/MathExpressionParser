@@ -16,3 +16,7 @@ public class UnaryExpr(Expression subject, TokenType op) : Expression {
 public class NumberExpr(decimal number) : Expression {
     public readonly decimal Number = number;
 }
+
+public class VariableExpr(string name) : Expression {
+    public readonly string Name = name;
+}

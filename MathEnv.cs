@@ -4,21 +4,31 @@ public abstract class MathException(string message) : Exception(message);
 public class MathParseException(string message) : MathException(message);
 public class MathEvalException(string message) : MathException(message);
 
-public static class MathEvaluator {
-    public static void PrintTokens(List<Token> tokens) {
-        foreach (var token in tokens) {
-            Console.Write(token.Type);
-            if (token.Value != null) {
-                Console.Write($": {token.Value}");
-            }
-
-            Console.WriteLine();
-        }
+public class MathEnv {
+    public readonly Dictionary<string, object> Variables = new();
+    public MathEnv() {
+        Variables["pi"] = (decimal) Math.PI;
     }
-
-    public static decimal EvalExpression(Expression expr) {
+    
+    
+    public decimal EvalExpression(Expression expr) {
         if (expr is NumberExpr numberExpr) {
             return numberExpr.Number;
+        }
+
+        if (expr is VariableExpr varExpr) {
+            string name = varExpr.Name;
+            object? definition = Variables.GetValueOrDefault(name);
+
+            if (definition == null) {
+                throw new MathEvalException($"Unknown variable \"{name}\"");
+            }
+            
+            if (definition is decimal number) {
+                return number;
+            }
+
+            throw new MathEvalException($"Attempt to evaluate non-number variable \"{name}\" as a number");
         }
 
         if (expr is UnaryExpr unaryExpr) {
@@ -46,18 +56,25 @@ public static class MathEvaluator {
         throw new MathEvalException("Unsupported expression type");
     }
 
-    public static decimal EvalMathString(string mathString) {
+    public decimal EvalMathString(string mathString) {
         var tokens = new MathLexer(mathString).Lex();
-        var expr = new MathParser(tokens).Expr();
+        var parser = new MathParser(tokens);
+        var expr = parser.Expr();
+
+        if (!parser.Finished()) {
+            throw new MathParseException("Unexpected extra tokens");
+        }
+        
         return EvalExpression(expr);
     }
     
     // method used for testing the parser
     public static void Main() {
+        var env = new MathEnv();
         decimal result;
 
         try {
-            result = EvalMathString("2^(2*2 + 4) - 1");
+            result = env.EvalMathString("pi()");
         } catch (MathException m) {
             Console.WriteLine($"Couldn't parse the expression: {m.Message}");
             return;

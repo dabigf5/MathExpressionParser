@@ -3,6 +3,10 @@ namespace MathExpressionParser;
 internal class MathParser(List<Token> tokens) {
     public readonly List<Token> Tokens = tokens;
     public int Position;
+
+    public bool Finished() {
+        return Check(TokenType.Eof);
+    }
     
     private Token Peek(int offset = 0) {
         return Tokens[Position + offset];
@@ -88,7 +92,12 @@ internal class MathParser(List<Token> tokens) {
         var token = Peek();
 
         if (token.Type == TokenType.Identifier) {
-            throw new MathParseException("Variables are not yet implemented!");
+            var next = Peek(1);
+            if (next.Type != TokenType.OpenPar) {
+                return new VariableExpr((string) token.Value!);
+            }
+
+            throw new MathParseException("Function calls coming soon");
         }
         
         if (token.Type == TokenType.Number) {
