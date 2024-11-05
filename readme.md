@@ -49,7 +49,7 @@ var env = new MathEnv();
 decimal result;
 
 env.Variables["myFavoriteNumber"] = 123m;
-env.Functions["half"] = new MathFunc(1, args => args[0] / 2;
+env.Functions["half"] = new MathFunc(1, args => args[0] / 2);
 
 try {
     result = env.EvalMathString("half(myFavoriteNumber)");
