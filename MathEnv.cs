@@ -111,6 +111,6 @@ public class MathEnv {
             return;
         }
 
-        Console.WriteLine(result);
+        Console.WriteLine($"The result is {result}");
     }
 }
