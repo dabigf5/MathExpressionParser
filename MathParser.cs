@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+
 namespace MathExpressionParser;
 
 internal class MathParser(List<Token> tokens) {
@@ -29,87 +31,106 @@ internal class MathParser(List<Token> tokens) {
         return accepted;
     }
 
-    private void Expect(TokenType type, string errorMessage) {
-        var token = Peek();
-        bool accepted = token.Type == type;
-
-        if (!accepted) {
-            throw new MathParseException(errorMessage);
-        }
+    public Expression[] ExprList() {
+        var expressions = new List<Expression>();
         
-        Advance();
+        Advance(); // open par
+        do {
+            var expr = Expr();
+            expressions.Add(expr);
+        } while (Match(TokenType.Comma));
+
+        if (!Match(TokenType.ClosePar)) {
+            throw new MathParseException("Expected )");
+        }
+
+        return expressions.ToArray();
     }
     
     public Expression Expr() {
-        return Term();
+        return Subtraction();
     }
     
-    private Expression Term() {
-        var expr = Factor();
+    public Expression Subtraction() {
+        var left = Addition();
 
-        while (Match(TokenType.Plus, TokenType.Minus)) {
-            var op = Peek(-1).Type;
-            var right = Factor();
-            expr = new BinaryExpr(expr, op, right);
+        while (Match(TokenType.Minus)) {
+            var right = Addition();
+            left = new BinaryExpr(left, TokenType.Minus, right);
         }
 
-        return expr;
+        return left;
     }
     
-    private Expression Factor() {
-        var expr = Unary();
+    public Expression Addition() {
+        var left = Division();
 
-        while (Match(TokenType.Slash, TokenType.Star)) {
-            var op = Peek(-1).Type;
+        while (Match(TokenType.Plus)) {
+            var right = Division();
+            left = new BinaryExpr(left, TokenType.Plus, right);
+        }
+
+        return left;
+    }
+    public Expression Division() {
+        var left = Multiplication();
+
+        while (Match(TokenType.Slash)) {
+            var right = Multiplication();
+            left = new BinaryExpr(left, TokenType.Slash, right);
+        }
+
+        return left;
+    }
+    public Expression Multiplication() {
+        var left = Unary();
+
+        while (Match(TokenType.Star)) {
             var right = Unary();
-            expr = new BinaryExpr(expr, op, right);
+            left = new BinaryExpr(left, TokenType.Star, right);
         }
 
-        return expr;
+        return left;
     }
-    
-    private Expression Unary() {
+    public Expression Unary() {
         if (Match(TokenType.Minus)) {
-            return new UnaryExpr(Unary(), Peek(-1).Type);
+            return new UnaryExpr(Unary(), TokenType.Minus);
         }
 
         return Exponent();
     }
-    
-    private Expression Exponent() {
-        var expr = Primary();
+    public Expression Exponent() {
+        var left = Primary();
 
-        while (Match(TokenType.Caret)) {
-            var op = Peek(-1).Type;
-            var right = Unary();
-            expr = new BinaryExpr(expr, op, right);
+        if (Match(TokenType.Caret)) {
+            return new BinaryExpr(left, TokenType.Caret, Exponent());
         }
 
-        return expr;
+        return left;
     }
     
-    private Expression Primary() {
-        var token = Peek();
-
-        if (token.Type == TokenType.Identifier) {
-            var next = Peek(1);
-            if (next.Type != TokenType.OpenPar) {
-                return new VariableExpr((string) token.Value!);
-            }
-
-            throw new MathParseException("Function calls coming soon");
-        }
-        
-        if (token.Type == TokenType.Number) {
-            Advance();
+    public Expression Primary() {
+        if (Match(TokenType.Number)) {
+            var token = Peek(-1);
             return new NumberExpr((decimal) token.Value!);
         }
 
-        if (token.Type == TokenType.OpenPar) {
-            Advance();
-            var expr = Expr();
-            Expect(TokenType.ClosePar, "Expected )");
-            return expr;
+        if (Match(TokenType.Identifier)) {
+            string id = (string) Peek(-1).Value!;
+            
+            if (Check(TokenType.OpenPar)) {
+                return new CallExpr(id, ExprList());
+            }
+            
+            return new VariableExpr(id);
+        }
+        
+        if (Match(TokenType.OpenPar)) {
+            var nestedExpr = Expr();
+            if (!Match(TokenType.ClosePar)) {
+                throw new MathParseException("Expected )");
+            }
+            return nestedExpr;
         }
 
         throw new MathParseException("Unexpected token");

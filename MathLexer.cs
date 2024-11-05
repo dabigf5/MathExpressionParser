@@ -68,6 +68,7 @@ internal class MathLexer(string text) {
             '*' => new Token(TokenType.Star),
             '/' => new Token(TokenType.Slash),
             '^' => new Token(TokenType.Caret),
+            ',' => new Token(TokenType.Comma),
             _ => throw new MathParseException($"Unexpected character '{ch}'")
         };
     }

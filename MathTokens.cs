@@ -3,6 +3,7 @@ namespace MathExpressionParser;
 public enum TokenType {
     OpenPar,
     ClosePar,
+    Comma,
     
     Plus,
     Minus,

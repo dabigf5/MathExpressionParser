@@ -20,3 +20,8 @@ public class NumberExpr(decimal number) : Expression {
 public class VariableExpr(string name) : Expression {
     public readonly string Name = name;
 }
+
+public class CallExpr(string name, Expression[] args) : Expression {
+    public readonly string Name = name;
+    public readonly Expression[] Args = args;
+}

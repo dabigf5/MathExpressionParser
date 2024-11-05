@@ -1,13 +1,16 @@
 ﻿namespace MathExpressionParser;
 
-public abstract class MathException(string message) : Exception(message);
-public class MathParseException(string message) : MathException(message);
-public class MathEvalException(string message) : MathException(message);
+public class MathFunc(int argCount, Func<decimal[], decimal> function) {
+    public readonly int ArgCount = argCount;
+    public readonly Func<decimal[], decimal> Function = function;
+}
 
 public class MathEnv {
-    public readonly Dictionary<string, object> Variables = new();
+    public readonly Dictionary<string, decimal> Variables = new();
+    public readonly Dictionary<string, MathFunc> Functions = new();
     public MathEnv() {
         Variables["pi"] = (decimal) Math.PI;
+        Functions["sin"] = new MathFunc(1, args => (decimal)Math.Sin((double)args[0]));
     }
     
     
@@ -18,17 +21,39 @@ public class MathEnv {
 
         if (expr is VariableExpr varExpr) {
             string name = varExpr.Name;
-            object? definition = Variables.GetValueOrDefault(name);
+            decimal? number = Variables.GetValueOrDefault(name);
 
-            if (definition == null) {
+            if (number == null) {
                 throw new MathEvalException($"Unknown variable \"{name}\"");
             }
-            
-            if (definition is decimal number) {
-                return number;
+
+            return number.Value;
+        }
+        
+        if (expr is CallExpr callExpr) {
+            string name = callExpr.Name;
+            var definition = Functions.GetValueOrDefault(name);
+
+            if (definition == null) {
+                throw new MathEvalException($"Unknown function \"{name}\"");
             }
 
-            throw new MathEvalException($"Attempt to evaluate non-number variable \"{name}\" as a number");
+            var args = callExpr.Args;
+            
+            int argCount = args.Length;
+            int definedArgCount = definition.ArgCount;
+            
+            if (argCount != definedArgCount) {
+                throw new MathEvalException($"Incorrect argument count for function \"{name}\" (expected {definedArgCount}, got {argCount})");
+            }
+
+            var evaluatedArgs = new decimal[definedArgCount];
+
+            for (int i = 0; i < definedArgCount; i++) {
+                evaluatedArgs[i] = EvalExpression(args[i]);
+            }
+            
+            return definition.Function(evaluatedArgs);
         }
 
         if (expr is UnaryExpr unaryExpr) {
@@ -74,7 +99,7 @@ public class MathEnv {
         decimal result;
 
         try {
-            result = env.EvalMathString("pi()");
+            result = env.EvalMathString("1 + 1 * (2 * 2) + sin(3) + sin(--pi)^2 / 123^2");
         } catch (MathException m) {
             Console.WriteLine($"Couldn't parse the expression: {m.Message}");
             return;
