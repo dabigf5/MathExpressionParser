@@ -10,7 +10,13 @@ public class MathEnv {
     public readonly Dictionary<string, MathFunc> Functions = new();
     public MathEnv() {
         Variables["pi"] = (decimal) Math.PI;
+        Variables["e"] = (decimal) Math.E;
+        
         Functions["sin"] = new MathFunc(1, args => (decimal)Math.Sin((double)args[0]));
+        Functions["cos"] = new MathFunc(1, args => (decimal)Math.Cos((double)args[0]));
+        Functions["tan"] = new MathFunc(1, args => (decimal)Math.Tan((double)args[0]));
+        Functions["atan"] = new MathFunc(1, args => (decimal)Math.Atan((double)args[0]));
+        Functions["atan2"] = new MathFunc(2, args => (decimal)Math.Atan2((double)args[0], (double)args[1]));
     }
     
     
