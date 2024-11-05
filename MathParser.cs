@@ -33,6 +33,10 @@ internal class MathParser(List<Token> tokens) {
         var expressions = new List<Expression>();
         
         Advance(); // open par
+        if (Match(TokenType.ClosePar)) {
+            return expressions.ToArray();
+        }
+        
         do {
             var expr = Expr();
             expressions.Add(expr);
